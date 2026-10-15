@@ -1,0 +1,13 @@
+{
+  "name": "bot-zima",
+  "version": "1.0.0",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "mineflayer": "^4.20.0",
+    "mineflayer-pathfinder": "^2.0.1",
+    "mineflayer-collectblock": "^1.4.1"
+  }
+}
