@@ -29,13 +29,6 @@ extra e obedece comandos digitados no chat do jogo. Roda em Docker no ZimaOS,
 
 ## ✨ Visão geral
 
-```text
-┌─────────────────────┐     ┌──────────────────────────┐     ┌─────────────────────┐
-│  Container Docker   │     │   Servidor Minecraft     │     │   Seu jogador       │
-│  node:22-alpine     │────▶│   Fabric 1.21.1          │◀────│   (você no jogo)    │
-│  bot.js (Mineflayer)│     │   192.168.3.248:25565    │     │   digita !comandos  │
-└─────────────────────┘     └──────────────────────────┘     └─────────────────────┘
-
 O bot conecta em 192.168.3.248:25565 como jogador BotZima
 Você digita comandos no chat público do jogo (todos começam com !)
 O container reinicia sozinho se cair e volta após reboot do Zima
