@@ -22,12 +22,10 @@ extra e obedece comandos digitados no chat do jogo. Roda em Docker no ZimaOS,
 - [Erros comuns](#-erros-comuns)
 - [Limitações conhecidas](#-limitações-conhecidas)
 - [Segurança](#-segurança)
-- [Backup e versionamento](#-backup-e-versionamento-git)
 - [Fluxo de trabalho sugerido](#-fluxo-de-trabalho-sugerido)
 - [FAQ](#-faq)
 - [Referências](#-referências)
 - [Licença](#-licença)
-- [Premissas e pontos a confirmar](#-premissas-e-pontos-a-confirmar)
 
 ## ✨ Visão geral
 
@@ -44,7 +42,7 @@ O container reinicia sozinho se cair e volta após reboot do Zima
 Se o bot for desconectado do servidor, ele reconecta sozinho
 (espera dobrando: 5s → 10s → 20s... até 60s)
 
-🗂️ Estrutura do projeto
+## 🗂️ Estrutura do projeto
 
 /DATA/AppData/bot-minecraft
 ├── bot.js              ← código do bot (comandos, reconexão automática)
@@ -80,7 +78,7 @@ package.json. Após trocar, rode docker restart bot-minecraft.
 
 
 
-🧩 Dependências
+## 🧩 Dependências
 
 Pacote Papel no bot
 mineflayer Núcleo: conecta ao servidor e traduz o protocolo do Minecraft em API JavaScript
@@ -88,14 +86,14 @@ mineflayer-pathfinder Pathfinding A*: andar até coordenadas, seguir jogadores, 
 mineflayer-collectblock Coletar blocos e itens do chão (usado por !minerar e !coletar)
 minecraft-data Nomes e IDs de blocos/itens/comidas da versão 1.21.1
 
-✅ Requisitos
+## ✅ Requisitos
 
 ZimaOS com Docker (já embutido no sistema)
 Servidor Minecraft Fabric 1.21.1 rodando no Zima
 No server.properties do servidor: online-mode=false e 1 slot livre
 Acesso ao Terminal do ZimaOS (para criar a pasta e versionar no Git)
 
-🚀 Instalação (ZimaOS)
+## 🚀 Instalação (ZimaOS)
 
 Abra o Terminal do ZimaOS e crie a pasta:
 
@@ -119,7 +117,7 @@ docker logs -f bot-minecraft
 
 Deve aparecer: Bot "BotZima" conectado em 192.168.3.248:25565
 
-⚙️ Configuração (docker-compose.yml)
+## ⚙️ Configuração (docker-compose.yml)
 
 name: bot-minecraft
 services:
@@ -149,7 +147,7 @@ MC_VERSION 1.21.1 Versão exata do servidor
 Para mudar qualquer valor: edite o docker-compose.yml e reinstale/atualize o
 app no instalador do ZimaOS, ou rode docker compose up -d dentro da pasta.
 
-🎮 Comandos do bot
+## 🎮 Comandos do bot
 
 Digite no chat público do jogo. Nomes de blocos/itens são em inglês com
 underline: diamond_ore, oak_log, iron_sword, cooked_beef.
@@ -185,7 +183,7 @@ Comando O que faz
 !equipar <item> Segura um item na mão (ex.: !equipar iron_sword)
 !diz <texto> Repete a frase no chat
 
-🐳 Comandos Docker do dia a dia
+## 🐳 Comandos Docker do dia a dia
 
 docker logs -f bot-minecraft      # ver o que o bot está fazendo (Ctrl+C sai)
 docker restart bot-minecraft      # reiniciar (aplica mudanças no bot.js)
@@ -210,13 +208,13 @@ Depois salve e reinicie:
 nano bot.js
 docker restart bot-minecraft
 
-🔄 Atualizar o bot
+## 🔄 Atualizar o bot
 
 cd /DATA/AppData/bot-minecraft
 git pull
 docker restart bot-minecraft
 
-🔍 Diagnóstico
+## 🔍 Diagnóstico
 
 Qualquer comportamento estranho, comece por aqui — o motivo quase sempre
 aparece nos logs:
@@ -226,7 +224,7 @@ docker logs -f bot-minecraft
 Linhas úteis: [kickado] (motivo da expulsão), [erro] (falha de conexão)
 e [desconectado] (reconexão automática em andamento).
 
-🚨 Erros comuns
+## 🚨 Erros comuns
 
 Mensagem/sintoma Causa provável Solução
 ECONNREFUSED 192.168.3.248:25565 Servidor não está rodando, ou IP/porta errados no compose Confirme que o servidor está no ar e o IP correto (hostname -I); ajuste MC_HOST/MC_PORT; veja os logs
@@ -239,7 +237,7 @@ Erro npm ERR! nos logs na inicialização Falta de internet no momento de instal
 Bot não responde aos comandos Comando sem ! ou bot fora da lista de jogadores Digite no chat público do jogo (ex.: !ola); confirme que o bot aparece na lista de jogadores (tecla Tab)
 Bot anda em círculos ou "trava" parado Pathfinder sem rota possível até o destino Use !parar, reposicione o bot perto do destino e tente de novo
 
-⚠️ Limitações conhecidas
+## ⚠️ Limitações conhecidas
 
 Não crafta itens — automação de receitas fica por conta do AE2 do modpack
 Não interage com máquinas modadas (quarry, Powah etc.) — só com mecânicas vanilla
@@ -249,38 +247,13 @@ Cada bot ocupa 1 slot de jogador e consome ~100–200 MB de RAM (estimativa)
 Versão fixa em 1.21.1 — atualizar o servidor exige atualizar MC_VERSION
 Sem conta Microsoft real, só funciona em servidor com online-mode=false
 
-🔐 Segurança
+## 🔐 Segurança
 
 ⚠️ Este setup usa online-mode=false (contas offline). Nunca exponha o
 servidor para a internet nesse modo — qualquer um entra com qualquer nome.
 Use apenas na rede local. O repositório no GitHub deve ser privado.
 
-💾 Backup e versionamento (Git)
-
-Primeiro push (repositório privado já criado no GitHub):
-
-cd /DATA/AppData/bot-minecraft
-git init
-git add .
-git commit -m "Bot Mineflayer no Zima: compose, bot.js, README e dependências"
-git branch -M main
-git remote add origin https://github.com/SEU_USUARIO/bot-minecraft.git
-git push -u origin main
-
-No dia a dia, após qualquer mudança:
-
-git add . && git commit -m "descrição da mudança" && git push
-docker restart bot-minecraft
-
-Para restaurar em outra máquina (ou recriar no Zima após perda):
-
-git clone https://github.com/SEU_USUARIO/bot-minecraft.git /DATA/AppData/bot-minecraft
-cd /DATA/AppData/bot-minecraft && docker compose up -d
-
-O .gitignore mantém node_modules/ e logs fora do repositório — quem clona
-roda docker compose up -d e o npm install baixa tudo sozinho.
-
-🧪 Fluxo de trabalho sugerido
+## 🧪 Fluxo de trabalho sugerido
 
 !vim → bot vem até você
 !minerar iron_ore → coleta ferro
@@ -288,7 +261,7 @@ roda docker compose up -d e o npm install baixa tudo sozinho.
 Repita — ou deixe o bot perto da sua farm com !coletar
 (com o Chunk Loaders do modpack, funciona até com você offline)
 
-❓ FAQ
+## ❓ FAQ
 
 O bot aparece para outros jogadores?
 Sim, como um jogador normal — aparece na lista (Tab), tem posição e inventário próprios.
@@ -304,33 +277,14 @@ O bot continua trabalhando se eu sair do servidor?
 Sim — ele é independente. Só depende do servidor estar no ar e do chunk
 carregado (use o mod Chunk Loaders para manter a área ativa).
 
-🔗 Referências
+## 🔗 Referências
 
 Mineflayer (GitHub) — API e documentação
 mineflayer-pathfinder (GitHub) — pathfinding
 mineflayer-collectblock (GitHub) — coleta de blocos
 Imagem node no Docker Hub — base do container
 
-📄 Licença
+## 📄 Licença
 
 MIT — use, modifique e distribua livremente. Veja o arquivo LICENSE se quiser
-formalizar (crie um com o texto padrão MIT se for compartilhar o repositório).
-
-📌 Premissas e pontos a confirmar
-
-# Premissa Status
-1 IP do servidor 192.168.3.248, porta 25565 ✅ Confirmado por você
-2 Versão exata do servidor: 1.21.1 ⚠️ Confirme com /version no servidor
-3 Nome do bot BotZima Ajustável em MC_USER
-4 Caminho /DATA/AppData/bot-minecraft Padrão do ZimaOS; ajuste se sua instalação difere
-5 Servidor em online-mode=false Necessário para bot offline; nunca exponha à internet
-6 minecraft-data agora declarado no package.json Correção aplicada nesta versão do README
-7 Consumo de RAM de 100–200 MB por bot Estimativa, não medido no seu Zima
-8 Licença MIT Sugestão padrão; troque se preferir
-
-
-O que foi adicionado nesta versão: índice navegável, diagrama de arquitetura, estrutura de arquivos, package.json corrigido (com `minecraft-data` declarado — era uma lacuna real do setup anterior), tabela de dependências, comandos Docker do dia a dia, guia para criar novos comandos, 9 erros comuns (adicionado pathfinder travado), limitações conhecidas, FAQ, referências, licença, backup/restauração via Git e a tabela de premissas.
-
-Se quiser, posso:
-- Gerar o arquivo `LICENSE` com o texto oficial da MIT
-- Criar o script `update.sh` (git pull + restart num comando só) para incluir no repo
+formalizar.
