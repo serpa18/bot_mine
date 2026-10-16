@@ -152,7 +152,7 @@ volumes:
 Para mudar qualquer valor: edite o `docker-compose.yml` e reinstale/atualize o
 app no instalador do ZimaOS, ou rode `docker compose up -d` dentro da pasta.
 
-## 🎮 Comandos do bot (20 no total)
+## 🎮 Comandos do bot
 
 Digite no chat público do jogo. Nomes de blocos/itens/mobs são em **inglês**
 com underline: `diamond_ore`, `oak_log`, `iron_sword`, `cow`, `wheat`.
