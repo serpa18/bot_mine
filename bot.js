@@ -1,7 +1,7 @@
 // ============================================================
 // bot.js — BotZima: bot Mineflayer para servidor caseiro
 // Servidor: Fabric 1.21.1 em 192.168.3.248:25565
-// v5 — comandos admin via servidor (funcionam com itens modded)
+// v6 — comandos de armadura (via servidor + auto-equip)
 // ============================================================
 
 // ---- Blindagem: impede que o container morra por erro não tratado ----
@@ -13,11 +13,13 @@ const mineflayer = require('mineflayer')
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 const collectBlock = require('mineflayer-collectblock').plugin
 const { Vec3 } = require('vec3')
+// Auto-equipa armadura vanilla que entrar no inventário (opcional)
+let armorManager = null
+try { armorManager = require('mineflayer-armor-manager').plugin } catch (e) {
+  console.log('[armor] plugin nao instalado — use !armadura / !vestir (via servidor)')
+}
 
 // ---- CONFIGURAÇÃO ----
-// MODO_SEGURO=false (recomendado): tolerância ativa — tudo vanilla funciona,
-//   pacotes com itens modded são descartados sem derrubar a conexão.
-// MODO_SEGURO=true: modo estável — ignora TODOS os pacotes de itens.
 const MODO_SEGURO = false
 
 const HOST = process.env.MC_HOST || '192.168.3.248'
@@ -58,9 +60,6 @@ for (const nome of pacotesParaIgnorar) {
 
 // ================================================================
 // PATCH B — tolerância (só com MODO_SEGURO=false)
-// No parser original, um pacote ilegível chama cb(e) e mata o stream
-// de processamento (bot fica mudo -> servidor expulsa por timeout).
-// Aqui o erro é engolido: o pacote é descartado e o resto continua.
 // ================================================================
 if (!MODO_SEGURO) {
   const mc = require('minecraft-protocol')
@@ -73,7 +72,6 @@ if (!MODO_SEGURO) {
     }
   }
   try {
-    // Recebimento: protege contra erro de leitura de pacote
     const probeDesc = mc.createDeserializer({ version: VERSION })
     const protoDesc = Object.getPrototypeOf(probeDesc)
     const descOriginal = protoDesc._transform
@@ -81,12 +79,11 @@ if (!MODO_SEGURO) {
       descOriginal.call(this, chunk, enc, (err) => {
         if (err) {
           logTolerado('recebido', err, ` (${chunk.length}B)`)
-          return cb() // engole o erro — a conexão continua viva
+          return cb()
         }
         cb()
       })
     }
-    // Envio: mesma proteção, evita o "bot mudo" por falha de escrita
     if (typeof mc.createSerializer === 'function') {
       const probeSer = mc.createSerializer({ version: VERSION })
       const protoSer = Object.getPrototypeOf(probeSer)
@@ -109,7 +106,6 @@ if (!MODO_SEGURO) {
 }
 
 // ===== Funções auxiliares =====
-// Ataca o alvo até ele morrer (máx. 30 golpes)
 async function atacarAteMorrer (bot, alvo) {
   for (let i = 0; i < 30 && alvo.isValid; i++) {
     await bot.pathfinder.goto(new goals.GoalNear(alvo.position.x, alvo.position.y, alvo.position.z, 1.5))
@@ -120,7 +116,6 @@ async function atacarAteMorrer (bot, alvo) {
   return !alvo.isValid
 }
 
-// Anda até os itens caídos no chão dentro do raio
 async function coletarDropsProximos (bot, raio = 24, maximo = 15) {
   const drops = Object.values(bot.entities)
     .filter(e => e.name === 'item' && bot.entity.position.distanceTo(e.position) < raio)
@@ -131,6 +126,16 @@ async function coletarDropsProximos (bot, raio = 24, maximo = 15) {
   return drops.length
 }
 
+// Detecta o slot de equipamento pelo nome do item
+function detectarSlot (nomeItem) {
+  if (/helmet$/i.test(nomeItem)) return 'armor.head'
+  if (/chestplate$/i.test(nomeItem)) return 'armor.chest'
+  if (/leggings$/i.test(nomeItem)) return 'armor.legs'
+  if (/boots$/i.test(nomeItem)) return 'armor.feet'
+  if (/shield$/i.test(nomeItem)) return 'weapon.offhand'
+  return 'weapon.mainhand'
+}
+
 // ===== Bot =====
 function criarBot () {
   const bot = mineflayer.createBot({
@@ -138,11 +143,12 @@ function criarBot () {
     port: PORT,
     username: USER,
     version: VERSION,
-    auth: 'offline' // servidor caseiro (online-mode=false)
+    auth: 'offline'
   })
   const mcData = require('minecraft-data')(VERSION)
   bot.loadPlugin(pathfinder)
   bot.loadPlugin(collectBlock)
+  if (armorManager) bot.loadPlugin(armorManager)
   bot.once('spawn', () => {
     tempoReconexao = 5000
     bot.pathfinder.setMovements(new Movements(bot))
@@ -325,7 +331,6 @@ function criarBot () {
           await bot.consume()
           bot.chat(`Comi ${comida.name.replace(/_/g, ' ')}.`)
         } else {
-          // Fallback: efeito de saturação via servidor (precisa ser OP)
           bot.chat(`/effect give ${bot.username} minecraft:saturation 1 25 true`)
           bot.chat('Sem comida visivel no inventario — usei saturacao via servidor.')
         }
@@ -344,6 +349,28 @@ function criarBot () {
         await bot.lookAt(alvo.position.offset(0, alvo.height, 0), true)
         bot.attack(alvo)
         bot.chat(`Atacando ${alvo.name}!`)
+      // ==================== ARMADURA (via servidor, precisa ser OP) ====================
+      } else if (cmd === '!armadura') {
+        const mat = (partes[0] || '').toLowerCase()
+        const mats = ['leather', 'chainmail', 'iron', 'golden', 'diamond', 'netherite']
+        if (!mats.includes(mat)) return bot.chat(`Materiais: ${mats.join(', ')} — ex: !armadura diamond`)
+        const slots = ['armor.head', 'armor.chest', 'armor.legs', 'armor.feet']
+        const pecas = ['helmet', 'chestplate', 'leggings', 'boots']
+        for (let i = 0; i < 4; i++) {
+          bot.chat(`/item replace entity ${bot.username} ${slots[i]} with minecraft:${mat}_${pecas[i]} 1`)
+        }
+        bot.chat(`Vestindo set completo de ${mat}!`)
+      } else if (cmd === '!vestir') {
+        const nomeItem = partes.join(' ')
+        if (!nomeItem) return bot.chat('Use: !vestir <item> — ex: !vestir diamond_helmet ou !vestir simplyswords:claymore')
+        const slot = detectarSlot(nomeItem)
+        bot.chat(`/item replace entity ${bot.username} ${slot} with ${nomeItem} 1`)
+        bot.chat(`Equipando ${nomeItem} no slot ${slot}.`)
+      } else if (cmd === '!tirar') {
+        for (const s of ['armor.head', 'armor.chest', 'armor.legs', 'armor.feet']) {
+          bot.chat(`/item replace entity ${bot.username} ${s} with minecraft:air`)
+        }
+        bot.chat('Armadura removida.')
       // ==================== ADMIN VIA SERVIDOR (precisa ser OP) ====================
       } else if (cmd === '!dar') {
         const item = partes[0]
@@ -381,6 +408,7 @@ function criarBot () {
         bot.chat('Basicos: !ola !status !vim !vimtp !ir <x> <z> !siguir <nick> !tp <x> <y> <z> !parar')
         bot.chat('Coleta: !minerar <bloco> !coletar !madeira [qtd] !depositar')
         bot.chat('Comida: !cacar <mob> [qtd] !farmar <plantacao> !cozinhar <item> [qtd] !craftar <item> [qtd] !comer')
+        bot.chat('Armadura (OP): !armadura <material> !vestir <item> !tirar')
         bot.chat('Outros: !atacar !dormir !inventario !equipar <item> !diz <texto>')
         bot.chat('Admin (OP): !dar <item> [qtd] !limpar !curar !dia !sol')
       } else if (cmd === '!diz') {
