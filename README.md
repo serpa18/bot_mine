@@ -2,9 +2,7 @@ Aqui está o README.md final, completo e consolidado. Revisei tudo que construí
 
 # 🤖 BotZima — Bot Mineflayer no ZimaOS
 
-Bot para Minecraft que entra no servidor caseiro (Fabric 1.21.1) como um jogador
-extra e obedece comandos digitados no chat do jogo. Roda em Docker no ZimaOS,
-24 horas por dia, com reconexão automática e código versionado no Git.
+Bot para Minecraft que entra no servidor caseiro (Fabric 1.21.1) como um jogador extra e obedece comandos digitados no chat do jogo. Roda em Docker no ZimaOS, 24 horas por dia, com reconexão automática e código versionado no Git.
 
 ## 📑 Índice
 
@@ -29,11 +27,10 @@ extra e obedece comandos digitados no chat do jogo. Roda em Docker no ZimaOS,
 
 ## ✨ Visão geral
 
-O bot conecta em 192.168.3.248:25565 como jogador BotZima
-Você digita comandos no chat público do jogo (todos começam com !)
-O container reinicia sozinho se cair e volta após reboot do Zima
-Se o bot for desconectado do servidor, ele reconecta sozinho
-(espera dobrando: 5s → 10s → 20s... até 60s)
+O bot conecta em 192.168.3.248:25565 como jogador BotZima.
+Você digita comandos no chat público do jogo (todos começam com !).
+O container reinicia sozinho se cair e volta após reboot do Zima.
+Se o bot for desconectado do servidor, ele reconecta sozinho (espera dobrando: 5s → 10s → 20s... até 60s).
 
 ## 🗂️ Estrutura do projeto
 
@@ -44,8 +41,7 @@ Se o bot for desconectado do servidor, ele reconecta sozinho
 ├── .gitignore          ← exclui node_modules e logs do Git
 └── README.md           ← este arquivo
 
-O código é montado na pasta via volume: editar bot.js e rodar
-docker restart bot-minecraft já aplica as mudanças (não precisa rebuild).
+O código é montado na pasta via volume: editar bot.js e rodar docker restart bot-minecraft já aplica as mudanças (não precisa rebuild).
 
 package.json (versão atualizada)
 
@@ -73,42 +69,42 @@ package.json. Após trocar, rode docker restart bot-minecraft.
 
 ## 🧩 Dependências
 
-Pacote Papel no bot
-mineflayer Núcleo: conecta ao servidor e traduz o protocolo do Minecraft em API JavaScript
-mineflayer-pathfinder Pathfinding A*: andar até coordenadas, seguir jogadores, desviar de obstáculos
-mineflayer-collectblock Coletar blocos e itens do chão (usado por !minerar e !coletar)
-minecraft-data Nomes e IDs de blocos/itens/comidas da versão 1.21.1
+Pacote Papel no bot.
+mineflayer Núcleo: conecta ao servidor e traduz o protocolo do Minecraft em API JavaScript.
+mineflayer-pathfinder Pathfinding A*: andar até coordenadas, seguir jogadores, desviar de obstáculos.
+mineflayer-collectblock Coletar blocos e itens do chão (usado por !minerar e !coletar).
+minecraft-data Nomes e IDs de blocos/itens/comidas da versão 1.21.1.
 
 ## ✅ Requisitos
 
-ZimaOS com Docker (já embutido no sistema)
-Servidor Minecraft Fabric 1.21.1 rodando no Zima
-No server.properties do servidor: online-mode=false e 1 slot livre
-Acesso ao Terminal do ZimaOS (para criar a pasta e versionar no Git)
+ZimaOS com Docker (já embutido no sistema).
+Servidor Minecraft Fabric 1.21.1 rodando no Zima.
+No server.properties do servidor: online-mode=false e 1 slot livre.
+Acesso ao Terminal do ZimaOS (para criar a pasta e versionar no Git).
 
 ## 🚀 Instalação (ZimaOS)
 
 Abra o Terminal do ZimaOS e crie a pasta:
 
-mkdir -p /DATA/AppData/bot-minecraft && cd /DATA/AppData/bot-minecraft
+mkdir -p /DATA/AppData/bot-minecraft && cd /DATA/AppData/bot-minecraft;
 
 
 Crie os arquivos do repositório dentro dela:
-bot.js, package.json, docker-compose.yml, .gitignore
+bot.js, package.json, docker-compose.yml, .gitignore;
 
 
 Instale pelo instalador de apps do ZimaOS:
 
-Apps → + → Custom Install
-Importe o docker-compose.yml da pasta (ou cole o conteúdo)
-Nome do app: bot-minecraft → Instalar
+Apps → + → Custom Install;
+Importe o docker-compose.yml da pasta (ou cole o conteúdo);
+Nome do app: bot-minecraft → Instalar;
 
 
 Confira os logs:
 
-docker logs -f bot-minecraft
+docker logs -f bot-minecraft;
 
-Deve aparecer: Bot "BotZima" conectado em 192.168.3.248:25565
+Deve aparecer: Bot "BotZima" conectado em 192.168.3.248:25565;
 
 ## ⚙️ Configuração (docker-compose.yml)
 
@@ -131,7 +127,7 @@ services:
 volumes:
   node_modules:
 
-Variável Valor Descrição
+Variável Valor Descrição:
 MC_HOST 192.168.3.248 IP do servidor Minecraft
 MC_PORT 25565 Porta do servidor
 MC_USER BotZima Nome do bot (deve ser único no servidor)
@@ -145,36 +141,36 @@ app no instalador do ZimaOS, ou rode docker compose up -d dentro da pasta.
 Digite no chat público do jogo. Nomes de blocos/itens são em inglês com
 underline: diamond_ore, oak_log, iron_sword, cooked_beef.
 
-Básico e movimento
+Básico e movimento.
 
-Comando O que faz
-!ola Responde uma saudação
-!status Mostra posição, vida e fome do bot
-!vim O bot anda até você
-!ir <x> <z> Anda até as coordenadas (ex.: !ir 100 -200)
-!siguir <nick> Segue um jogador mantendo distância de 3 blocos
-!parar Para qualquer tarefa em andamento
+Comando O que faz:
+!ola Responde uma saudação.
+!status Mostra posição, vida e fome do bot.
+!vim O bot anda até você.
+!ir <x> <z> Anda até as coordenadas (ex.: !ir 100 -200).
+!siguir <nick> Segue um jogador mantendo distância de 3 blocos.
+!parar Para qualquer tarefa em andamento.
 
-Trabalho
+Trabalho.
 
-Comando O que faz
-!minerar <bloco> Minera o bloco mais próximo num raio de 48 (ex.: !minerar iron_ore)
-!coletar Vai até e coleta itens caídos no chão por perto (24 blocos)
-!depositar Guarda TODO o inventário no baú mais próximo (16 blocos)
-!atacar Ataca o mob hostil mais próximo (16 blocos)
+Comando O que faz:
+!minerar <bloco> Minera o bloco mais próximo num raio de 48 (ex.: !minerar iron_ore).
+!coletar Vai até e coleta itens caídos no chão por perto (24 blocos).
+!depositar Guarda TODO o inventário no baú mais próximo (16 blocos).
+!atacar Ataca o mob hostil mais próximo (16 blocos).
 
-Cuidados pessoais
+Cuidados pessoais.
 
-Comando O que faz
-!comer Come o primeiro item de comida do inventário
-!dormir Dorme na cama mais próxima (32 blocos)
+Comando O que faz:
+!comer Come o primeiro item de comida do inventário.
+!dormir Dorme na cama mais próxima (32 blocos).
 
-Utilidades
+Utilidades.
 
-Comando O que faz
-!inventario Lista o que o bot está carregando
-!equipar <item> Segura um item na mão (ex.: !equipar iron_sword)
-!diz <texto> Repete a frase no chat
+Comando O que faz:
+!inventario Lista o que o bot está carregando.
+!equipar <item> Segura um item na mão (ex.: !equipar iron_sword).
+!diz <texto> Repete a frase no chat.
 
 ## 🐳 Comandos Docker do dia a dia
 
@@ -185,7 +181,7 @@ docker start bot-minecraft        # ligar de novo
 docker compose up -d              # aplicar mudanças no docker-compose.yml
 docker compose down               # remover o container (arquivos ficam)
 
-➕ Como adicionar um novo comando
+➕ Como adicionar um novo comando.
 
 Abra o bot.js, localize o bloco de comandos (} else if (cmd === ...)) e
 adicione o seu antes do !diz. Exemplo — comando !pular:
@@ -219,26 +215,26 @@ e [desconectado] (reconexão automática em andamento).
 
 ## 🚨 Erros comuns
 
-Mensagem/sintoma Causa provável Solução
-ECONNREFUSED 192.168.3.248:25565 Servidor não está rodando, ou IP/porta errados no compose Confirme que o servidor está no ar e o IP correto (hostname -I); ajuste MC_HOST/MC_PORT; veja os logs
-Unsupported protocol version MC_VERSION do bot diferente da versão do servidor Coloque em MC_VERSION a versão exata do servidor (ex.: 1.21.1)
-Failed to obtain profile / Invalid session Servidor em online-mode=true e bot sem conta real No server.properties do servidor use online-mode=false (caseiro) ou use conta Microsoft real (avançado)
-Kick: You are already connected / nome duplicado Outro jogador ou bot já usa o mesmo nome Troque MC_USER por outro nome e reinicie
-Conecta e cai em loop (reconecta sem parar) Servidor cheio (max-players) ou plugin/mod barrando o bot Veja o motivo na linha [kickado] dos logs; aumente max-players ou libere o bot
-command not found: docker Terminal sem acesso ao Docker do ZimaOS Use o terminal da interface web do ZimaOS; se for permissão, anteceda os comandos com sudo
-Erro npm ERR! nos logs na inicialização Falta de internet no momento de instalar as dependências Aguarde a conexão voltar e rode docker restart bot-minecraft
-Bot não responde aos comandos Comando sem ! ou bot fora da lista de jogadores Digite no chat público do jogo (ex.: !ola); confirme que o bot aparece na lista de jogadores (tecla Tab)
-Bot anda em círculos ou "trava" parado Pathfinder sem rota possível até o destino Use !parar, reposicione o bot perto do destino e tente de novo
+Mensagem/sintoma Causa provável Solução:
+ECONNREFUSED 192.168.3.248:25565 Servidor não está rodando, ou IP/porta errados no compose Confirme que o servidor está no ar e o IP correto (hostname -I); ajuste MC_HOST/MC_PORT; veja os logs.
+Unsupported protocol version MC_VERSION do bot diferente da versão do servidor Coloque em MC_VERSION a versão exata do servidor (ex.: 1.21.1).
+Failed to obtain profile / Invalid session Servidor em online-mode=true e bot sem conta real No server.properties do servidor use online-mode=false (caseiro) ou use conta Microsoft real (avançado).
+Kick: You are already connected / nome duplicado Outro jogador ou bot já usa o mesmo nome Troque MC_USER por outro nome e reinicie.
+Conecta e cai em loop (reconecta sem parar) Servidor cheio (max-players) ou plugin/mod barrando o bot. Veja o motivo na linha [kickado] dos logs; aumente max-players ou libere o bot
+Command not found: docker Terminal sem acesso ao Docker do ZimaOS Use o terminal da interface web do ZimaOS; se for permissão, anteceda os comandos com sudo.
+Erro npm ERR! nos logs na inicialização Falta de internet no momento de instalar as dependências Aguarde a conexão voltar e rode docker restart bot-minecraft.
+Bot não responde aos comandos Comando sem ! ou bot fora da lista de jogadores Digite no chat público do jogo (ex.: !ola); confirme que o bot aparece na lista de jogadores (tecla Tab).
+Bot anda em círculos ou "trava" parado Pathfinder sem rota possível até o destino Use !parar, reposicione o bot perto do destino e tente de novo.
 
 ## ⚠️ Limitações conhecidas
 
-Não crafta itens — automação de receitas fica por conta do AE2 do modpack
-Não interage com máquinas modadas (quarry, Powah etc.) — só com mecânicas vanilla
-Pathfinder pode falhar em terreno muito difícil (use !parar e reposicione)
-Raio de busca do !minerar limitado a 48 blocos
-Cada bot ocupa 1 slot de jogador e consome ~100–200 MB de RAM (estimativa)
-Versão fixa em 1.21.1 — atualizar o servidor exige atualizar MC_VERSION
-Sem conta Microsoft real, só funciona em servidor com online-mode=false
+Não crafta itens — automação de receitas fica por conta do AE2 do modpack.
+Não interage com máquinas modadas (quarry, Powah etc.) — só com mecânicas vanilla.
+Pathfinder pode falhar em terreno muito difícil (use !parar e reposicione).
+Raio de busca do !minerar limitado a 48 blocos.
+Cada bot ocupa 1 slot de jogador e consome ~100–200 MB de RAM (estimativa).
+Versão fixa em 1.21.1 — atualizar o servidor exige atualizar MC_VERSION.
+Sem conta Microsoft real, só funciona em servidor com online-mode=false.
 
 ## 🔐 Segurança
 
