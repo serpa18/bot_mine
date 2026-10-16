@@ -7,7 +7,7 @@ extra e obedece comandos digitados no chat do jogo. Roda em Docker no ZimaOS,
 ## 📑 Índice
 
 - [Visão geral](#-visão-geral)
-- [Estrutura do projeto](#-estrutura-do-projeto)
+- [Estrutura do projeto](#%EF%B8%8F-estrutura-do-projeto)
 - [Dependências](#-dependências)
 - [Requisitos](#-requisitos)
 - [Instalação](#-instalação-zimaos)
