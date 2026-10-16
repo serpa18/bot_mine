@@ -60,9 +60,7 @@ function criarBot () {
     tempoReconexao = 5000
     bot.pathfinder.setMovements(new Movements(bot))
     console.log(`Bot "${bot.username}" conectado em ${HOST}:${PORT} (versão ${bot.version})`)
-    bot.chat('Ola! Sou o BotZima. Basicos: !ola !status !vim !ir <x> <z> !siguir <nick> !parar')
-    bot.chat('Trabalho: !minerar <bloco> !coletar !depositar !cacar <mob> [qtd] !farmar <plantacao> !madeira [qtd]')
-    bot.chat('Extras: !cozinhar <item> [qtd] !craftar <item> [qtd] !comer !dormir !atacar !inventario !equipar <item> !diz <texto>')
+    bot.chat(`Ola! Sou o ${bot.username}. Digite !comandos para ver a lista.`)
   })
 
   bot.on('chat', async (username, message) => {
@@ -279,6 +277,13 @@ function criarBot () {
         await bot.equip(item, 'hand')
         bot.chat(`Segurando ${nome.replace(/_/g, ' ')}.`)
 
+      } else if (cmd === '!comandos') {
+        bot.chat('=== COMANDOS DO BOT ===')
+        bot.chat('Basicos: !ola !status !vim !ir <x> <z> !siguir <nick> !parar')
+        bot.chat('Coleta: !minerar <bloco> !coletar !madeira [qtd] !depositar')
+        bot.chat('Comida: !cacar <mob> [qtd] !farmar <plantacao> !cozinhar <item> [qtd] !craftar <item> [qtd] !comer')
+        bot.chat('Outros: !atacar !dormir !inventario !equipar <item> !diz <texto>')  
+          
       } else if (cmd === '!diz') {
         bot.chat(partes.join(' '))
       }
