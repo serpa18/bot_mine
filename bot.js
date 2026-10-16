@@ -1,15 +1,14 @@
 // ============================================================
 // bot.js — BotZima: bot Mineflayer para servidor caseiro
 // Servidor: Fabric 1.21.1 em 192.168.3.248:25565
-// 21 comandos, digitados no chat do jogo (prefixo !)
-// v4 — patches modded + requires completos
+// v5 — comandos admin via servidor (funcionam com itens modded)
 // ============================================================
 
 // ---- Blindagem: impede que o container morra por erro não tratado ----
 process.on('uncaughtException', (err) => console.error('[guard] uncaughtException:', err.message))
 process.on('unhandledRejection', (err) => console.error('[guard] unhandledRejection:', (err && err.message) || err))
 
-// ---- REQUIRES DO BOT (faltavam na v3 — causa do "mineflayer is not defined") ----
+// ---- REQUIRES DO BOT ----
 const mineflayer = require('mineflayer')
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 const collectBlock = require('mineflayer-collectblock').plugin
@@ -170,12 +169,22 @@ function criarBot () {
         const p = autor.position
         bot.pathfinder.setGoal(new goals.GoalNear(p.x, p.y, p.z, 2))
         bot.chat(`Indo ate voce, ${username}!`)
+      } else if (cmd === '!vimtp') {
+        bot.chat(`/tp ${bot.username} ${username}`)
+        bot.chat(`Me teleportando ate voce, ${username}!`)
       } else if (cmd === '!ir') {
         const x = parseInt(partes[0], 10)
         const z = parseInt(partes[1], 10)
         if (isNaN(x) || isNaN(z)) return bot.chat('Use: !ir <x> <z>')
         bot.pathfinder.setGoal(new goals.GoalXZ(x, z))
         bot.chat(`Indo ate ${x}, ${z}...`)
+      } else if (cmd === '!tp') {
+        const x = parseInt(partes[0], 10)
+        const y = parseInt(partes[1], 10)
+        const z = parseInt(partes[2], 10)
+        if (isNaN(x) || isNaN(y) || isNaN(z)) return bot.chat('Use: !tp <x> <y> <z>')
+        bot.chat(`/tp ${bot.username} ${x} ${y} ${z}`)
+        bot.chat(`Teleportado para ${x} ${y} ${z}!`)
       } else if (cmd === '!siguir') {
         const alvo = bot.players[partes[0]] && bot.players[partes[0]].entity
         if (!alvo) return bot.chat(`Nao encontrei o jogador ${partes[0]}`)
@@ -311,10 +320,15 @@ function criarBot () {
       // ==================== CUIDADOS PESSOAIS ====================
       } else if (cmd === '!comer') {
         const comida = bot.inventory.items().find(i => mcData.foodsByName[i.name])
-        if (!comida) return bot.chat('Nao tenho comida no inventario')
-        await bot.equip(comida, 'hand')
-        await bot.consume()
-        bot.chat(`Comi ${comida.name.replace(/_/g, ' ')}.`)
+        if (comida) {
+          await bot.equip(comida, 'hand')
+          await bot.consume()
+          bot.chat(`Comi ${comida.name.replace(/_/g, ' ')}.`)
+        } else {
+          // Fallback: efeito de saturação via servidor (precisa ser OP)
+          bot.chat(`/effect give ${bot.username} minecraft:saturation 1 25 true`)
+          bot.chat('Sem comida visivel no inventario — usei saturacao via servidor.')
+        }
       } else if (cmd === '!dormir') {
         const idsCamas = Object.values(mcData.blocksByName)
           .filter(b => b.name.endsWith('_bed')).map(b => b.id)
@@ -330,10 +344,29 @@ function criarBot () {
         await bot.lookAt(alvo.position.offset(0, alvo.height, 0), true)
         bot.attack(alvo)
         bot.chat(`Atacando ${alvo.name}!`)
+      // ==================== ADMIN VIA SERVIDOR (precisa ser OP) ====================
+      } else if (cmd === '!dar') {
+        const item = partes[0]
+        const qtd = Math.min(parseInt(partes[1] || '1', 10) || 1, 64)
+        if (!item) return bot.chat('Use: !dar <item> [qtd] — ex: !dar simplyswords:claymore')
+        bot.chat(`/give ${bot.username} ${item} ${qtd}`)
+        bot.chat(`Pedindo ${qtd}x ${item} ao servidor...`)
+      } else if (cmd === '!limpar') {
+        bot.chat(`/clear ${bot.username}`)
+        bot.chat('Limpando meu inventario pelo servidor...')
+      } else if (cmd === '!curar') {
+        bot.chat(`/effect give ${bot.username} minecraft:instant_health 1 9 true`)
+        bot.chat('Me curando...')
+      } else if (cmd === '!dia') {
+        bot.chat('/time set day')
+        bot.chat('Dia ativado!')
+      } else if (cmd === '!sol') {
+        bot.chat('/weather clear')
+        bot.chat('Clima limpo!')
       // ==================== UTILIDADES ====================
       } else if (cmd === '!inventario') {
         const itens = bot.inventory.items()
-        if (!itens.length) return bot.chat('Inventario vazio')
+        if (!itens.length) return bot.chat('Inventario vazio (ou com itens modded que nao consigo ler — use !dar/!limpar)')
         const resumo = {}
         for (const i of itens) resumo[i.name] = (resumo[i.name] || 0) + i.count
         bot.chat(Object.entries(resumo).map(([n, c]) => `${c}x ${n}`).join(', ').slice(0, 240))
@@ -345,10 +378,11 @@ function criarBot () {
         bot.chat(`Segurando ${nome.replace(/_/g, ' ')}.`)
       } else if (cmd === '!comandos') {
         bot.chat('=== COMANDOS DO BOT ===')
-        bot.chat('Basicos: !ola !status !vim !ir <x> <z> !siguir <nick> !parar')
+        bot.chat('Basicos: !ola !status !vim !vimtp !ir <x> <z> !siguir <nick> !tp <x> <y> <z> !parar')
         bot.chat('Coleta: !minerar <bloco> !coletar !madeira [qtd] !depositar')
         bot.chat('Comida: !cacar <mob> [qtd] !farmar <plantacao> !cozinhar <item> [qtd] !craftar <item> [qtd] !comer')
         bot.chat('Outros: !atacar !dormir !inventario !equipar <item> !diz <texto>')
+        bot.chat('Admin (OP): !dar <item> [qtd] !limpar !curar !dia !sol')
       } else if (cmd === '!diz') {
         bot.chat(partes.join(' '))
       }
